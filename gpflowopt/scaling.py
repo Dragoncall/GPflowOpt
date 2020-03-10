@@ -26,7 +26,7 @@ def transform(transforms_input, transforms_output):
     def decorator(func):
         @functools.wraps(func)
         def wrapper_transform(self, *args, **kwargs):
-            returns = func(*[getattr(self.input_transform, transforms_input[i])(args) for i, arg in enumerate(args)], **kwargs)
+            returns = func(self, *[getattr(self.input_transform, transforms_input[i])(args) for i, arg in enumerate(args)], **kwargs)
             return tuple([getattr(self._output_transform, transforms_output[i])(value) for i, value in enumerate(returns)])
         return wrapper_transform
     return decorator
