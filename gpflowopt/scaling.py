@@ -199,12 +199,18 @@ class DataScaler(ModelWrapper):
         """
         return self.wrapped.build_predict(Xnew, full_cov=full_cov, **kwargs)
 
-    @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
     def predict_f(self, Xnew, **kwargs):
         """
         Compute the mean and variance of held-out data at the points Xnew
         """
-        return self.wrapped.predict_f(Xnew, **kwargs)
+        f, var = self.wrapped.predict_f(Xnew, **kwargs)
+
+        @AutoFlow((float_type, [None, 1]), (float_type, [None, 1]))
+        def predict_f_rescaled(f, var):
+            return self.output_transform.build_backward(f), self.output_transform.build_backward_variance(var)
+
+        return predict_f_rescaled(f, var)
+
 
     @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
     def predict_f_full_cov(self, Xnew, **kwargs):
