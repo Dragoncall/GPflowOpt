@@ -256,7 +256,7 @@ class Acquisition(Parameterized):
         :return: acquisition scores, size N x 1
             the gradients of the acquisition scores, size N x D 
         """
-        acq = self._evaluate(Xcand, *self._get_evaluate_kwargs(Xcand))
+        acq = self._evaluate(Xcand, **self._get_evaluate_kwargs(Xcand))
         return acq, tf.gradients(acq, [Xcand], name="acquisition_gradient")[0]
 
     def _get_evaluate_kwargs(self, Xcand):
