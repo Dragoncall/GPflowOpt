@@ -14,7 +14,7 @@
 
 import nox
 
-TEST_DEPS = ('six',)
+TEST_DEPS = ('six', 'pip==18.1')
 SYSTEM_TEST_DEPS = ('nbconvert', 'nbformat', 'jupyter', 'jupyter_client', 'matplotlib')
 
 

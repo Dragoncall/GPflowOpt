@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import functools
 
 from gpflow.param import DataHolder, AutoFlow
 from gpflow import settings
@@ -20,6 +21,15 @@ from .domain import UnitCube
 from .models import ModelWrapper
 
 float_type = settings.dtypes.float_type
+
+def transform(transforms_input, transforms_output):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper_transform(self, *args, **kwargs):
+            returns = func(*[self._input_transform.__getattr__(transforms_input[i])(args) for i, arg in enumerate(args)], **kwargs)
+            return [self._output_transform.__getattr__(transforms_output[i])(args)[i](value) for i, value in enumerate(returns)]
+        return wrapper_transform
+    return decorator
 
 
 class DataScaler(ModelWrapper):
@@ -180,22 +190,24 @@ class DataScaler(ModelWrapper):
             self.output_transform.assign(~LinearTransform(value.std(axis=0), value.mean(axis=0)))
         self.wrapped.Y = self.output_transform.forward(value)
 
+    @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
     def build_predict(self, Xnew, full_cov=False, **kwargs):
         """
         build_predict builds the TensorFlow graph for prediction. Similar to the method in the wrapped model, however
         the input points are transformed using the input transform. The returned mean and variance are transformed
         backward using the output transform.
         """
-        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew), full_cov=full_cov, **kwargs)
-        return self.output_transform.build_backward(f), self.output_transform.build_backward_variance(var)
+        return self.wrapped.build_predict(Xnew, full_cov=full_cov, **kwargs)
 
+    @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
     @AutoFlow((float_type, [None, None]))
     def predict_f(self, Xnew, **kwargs):
         """
         Compute the mean and variance of held-out data at the points Xnew
         """
-        return self.build_predict(Xnew, **kwargs)
+        return self.wrapped.predict_f(Xnew, **kwargs)
 
+    @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
     @AutoFlow((float_type, [None, None]))
     def predict_f_full_cov(self, Xnew, **kwargs):
         """
