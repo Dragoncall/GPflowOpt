@@ -186,7 +186,7 @@ class DataScaler(ModelWrapper):
         the input points are transformed using the input transform. The returned mean and variance are transformed
         backward using the output transform.
         """
-        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew, **kwargs), full_cov=full_cov)
+        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew), full_cov=full_cov, **kwargs)
         return self.output_transform.build_backward(f), self.output_transform.build_backward_variance(var)
 
     @AutoFlow((float_type, [None, None]))
