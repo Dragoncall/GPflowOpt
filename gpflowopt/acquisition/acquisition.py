@@ -273,7 +273,7 @@ class Acquisition(Parameterized):
             WARNING: Override this method when the _get_evaluate_kwargs is overridden!
             :return: acquisition scores, size N x 1
         """
-        return self.build_acquisition(Xcand,)
+        return self.build_acquisition(Xcand, **kwargs)
 
     @setup_required
     def evaluate(self, Xcand, **kwargs):
