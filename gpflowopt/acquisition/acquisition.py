@@ -121,7 +121,7 @@ class Acquisition(Parameterized):
             best_idx = np.argmin([r.fun for r in runs])
             model.set_state(runs[best_idx].x)
 
-    def build_acquisition(self, Xcand):
+    def build_acquisition(self, Xcand, **kwargs):
         raise NotImplementedError
 
     def enable_scaling(self, domain):
@@ -162,8 +162,12 @@ class Acquisition(Parameterized):
             Ypart = Y[:, num_outputs_sum:num_outputs_sum + num_outputs]
             num_outputs_sum += num_outputs
 
-            model.X = X
-            model.Y = Ypart
+            # The model can implement a custom set_data_acq function
+            if hasattr(model, 'set_data_acq'):
+                model.set_data_acq(X, Y)
+            else:
+                model.X = X
+                model.Y = Ypart
 
         self.highest_parent._needs_setup = True
         return num_outputs_sum
@@ -253,7 +257,7 @@ class Acquisition(Parameterized):
         :return: acquisition scores, size N x 1
             the gradients of the acquisition scores, size N x D 
         """
-        acq = self.build_acquisition(Xcand)
+        acq = self.build_acquisition(Xcand, )
         return acq, tf.gradients(acq, [Xcand], name="acquisition_gradient")[0]
 
     @setup_required
@@ -264,7 +268,7 @@ class Acquisition(Parameterized):
         
         :return: acquisition scores, size N x 1
         """
-        return self.build_acquisition(Xcand)
+        return self.build_acquisition(Xcand, )
 
     def __add__(self, other):
         """
@@ -357,8 +361,8 @@ class AcquisitionAggregation(Acquisition):
     def feasible_data_index(self):
         return np.all(np.vstack(map(lambda o: o.feasible_data_index(), self.operands)), axis=0)
 
-    def build_acquisition(self, Xcand):
-        return self._oper(tf.concat(list(map(lambda operand: operand.build_acquisition(Xcand), self.operands)), 1),
+    def build_acquisition(self, Xcand, **kwargs):
+        return self._oper(tf.concat(list(map(lambda operand: operand.build_acquisition(Xcand, **kwargs), self.operands)), 1),
                           axis=1, keep_dims=True, name=self.__class__.__name__)
 
     def __getitem__(self, item):
@@ -443,9 +447,9 @@ class MCMCAcquistion(AcquisitionSum):
             offset = operand.set_data(X, Y)
         return offset
 
-    def build_acquisition(self, Xcand):
+    def build_acquisition(self, Xcand, **kwargs):
         # Average the predictions of the copies.
-        return 1. / len(self.operands) * super(MCMCAcquistion, self).build_acquisition(Xcand)
+        return 1. / len(self.operands) * super(MCMCAcquistion, self).build_acquisition(Xcand, **kwargs)
 
     def _kill_autoflow(self):
         """

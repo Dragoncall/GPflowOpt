@@ -17,8 +17,8 @@ class SimpleAcquisition(gpflowopt.acquisition.Acquisition):
         super(SimpleAcquisition, self)._setup()
         self.counter += 1
 
-    def build_acquisition(self, Xcand):
-        return self.models[0].build_predict(Xcand)[0]
+    def build_acquisition(self, Xcand, **kwargs):
+        return self.models[0].build_predict(Xcand, **kwargs)[0]
 
 
 class TestAcquisition(GPflowOptTestCase):
@@ -94,7 +94,7 @@ class TestAcquisition(GPflowOptTestCase):
             l = self.acquisition.make_tf_array(free_vars)
             x_tf = tf.placeholder(tf.float64, shape=(50, 2))
             with self.acquisition.tf_mode():
-                tens = self.acquisition.build_acquisition(x_tf)
+                tens = self.acquisition.build_acquisition(x_tf, )
                 self.assertTrue(isinstance(tens, tf.Tensor), msg="no Tensor was returned")
 
     def test_result_shape_np(self):

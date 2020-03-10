@@ -95,7 +95,7 @@ class HVProbabilityOfImprovement(Acquisition):
         # Calculate reference point.
         self.reference = self._estimate_reference()
 
-    def build_acquisition(self, Xcand):
+    def build_acquisition(self, Xcand, **kwargs):
         outdim = tf.shape(self.data[1])[1]
         num_cells = tf.shape(self.pareto.bounds.lb)[0]
         N = tf.shape(Xcand)[0]
@@ -104,7 +104,7 @@ class HVProbabilityOfImprovement(Acquisition):
         pf_ext = tf.concat([-np.inf * tf.ones([1, outdim], dtype=float_type), self.pareto.front, self.reference], 0)
 
         # Predictions for candidates, concatenate columns
-        preds = [m.build_predict(Xcand) for m in self.models]
+        preds = [m.build_predict(Xcand, **kwargs) for m in self.models]
         candidate_mean, candidate_var = (tf.concat(moment, 1) for moment in zip(*preds))
         candidate_var = tf.maximum(candidate_var, stability)  # avoid zeros
 

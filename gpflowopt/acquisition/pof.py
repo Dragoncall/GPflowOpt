@@ -78,8 +78,8 @@ class ProbabilityOfFeasibility(Acquisition):
         pred = self.evaluate(self.data[0])
         return pred.ravel() > self.minimum_pof
 
-    def build_acquisition(self, Xcand):
-        candidate_mean, candidate_var = self.models[0].build_predict(Xcand)
+    def build_acquisition(self, Xcand, **kwargs):
+        candidate_mean, candidate_var = self.models[0].build_predict(Xcand, **kwargs)
         candidate_var = tf.maximum(candidate_var, stability)
         normal = tf.contrib.distributions.Normal(candidate_mean, tf.sqrt(candidate_var))
         return normal.cdf(tf.constant(self.threshold, dtype=float_type), name=self.__class__.__name__)

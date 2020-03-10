@@ -180,43 +180,43 @@ class DataScaler(ModelWrapper):
             self.output_transform.assign(~LinearTransform(value.std(axis=0), value.mean(axis=0)))
         self.wrapped.Y = self.output_transform.forward(value)
 
-    def build_predict(self, Xnew, full_cov=False):
+    def build_predict(self, Xnew, full_cov=False, **kwargs):
         """
         build_predict builds the TensorFlow graph for prediction. Similar to the method in the wrapped model, however
         the input points are transformed using the input transform. The returned mean and variance are transformed
         backward using the output transform.
         """
-        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew), full_cov=full_cov)
+        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew, **kwargs), full_cov=full_cov)
         return self.output_transform.build_backward(f), self.output_transform.build_backward_variance(var)
 
     @AutoFlow((float_type, [None, None]))
-    def predict_f(self, Xnew):
+    def predict_f(self, Xnew, **kwargs):
         """
         Compute the mean and variance of held-out data at the points Xnew
         """
-        return self.build_predict(Xnew)
+        return self.build_predict(Xnew, **kwargs)
 
     @AutoFlow((float_type, [None, None]))
-    def predict_f_full_cov(self, Xnew):
+    def predict_f_full_cov(self, Xnew, **kwargs):
         """
         Compute the mean and variance of held-out data at the points Xnew
         """
-        return self.build_predict(Xnew, full_cov=True)
+        return self.build_predict(Xnew, full_cov=True, **kwargs)
 
     @AutoFlow((float_type, [None, None]))
-    def predict_y(self, Xnew):
+    def predict_y(self, Xnew, **kwargs):
         """
         Compute the mean and variance of held-out data at the points Xnew
         """
-        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew))
+        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew), **kwargs)
         f, var = self.likelihood.predict_mean_and_var(f, var)
         return self.output_transform.build_backward(f), self.output_transform.build_backward_variance(var)
 
     @AutoFlow((float_type, [None, None]), (float_type, [None, None]))
-    def predict_density(self, Xnew, Ynew):
+    def predict_density(self, Xnew, Ynew, **kwargs):
         """
         Compute the (log) density of the data Ynew at the points Xnew
         """
-        mu, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew))
+        mu, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew), **kwargs)
         Ys = self.output_transform.build_forward(Ynew)
         return self.likelihood.predict_density(mu, var, Ys)
