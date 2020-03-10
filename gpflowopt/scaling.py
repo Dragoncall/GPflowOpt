@@ -206,10 +206,10 @@ class DataScaler(ModelWrapper):
         f, var = self.wrapped.predict_f(Xnew, **kwargs)
 
         @AutoFlow((float_type, [None, 1]), (float_type, [None, 1]))
-        def predict_f_rescaled(f, var):
+        def predict_f_rescaled(self, f, var):
             return self.output_transform.build_backward(f), self.output_transform.build_backward_variance(var)
 
-        return predict_f_rescaled(f, var)
+        return predict_f_rescaled(self, f, var)
 
 
     @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
