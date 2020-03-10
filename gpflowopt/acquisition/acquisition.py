@@ -249,7 +249,6 @@ class Acquisition(Parameterized):
             self._setup()
 
     @setup_required
-    @AutoFlow((float_type, [None, None]))
     def evaluate_with_gradients(self, Xcand):
         """
         AutoFlow method to compute the acquisition scores for candidates, also returns the gradients.
@@ -257,18 +256,28 @@ class Acquisition(Parameterized):
         :return: acquisition scores, size N x 1
             the gradients of the acquisition scores, size N x D 
         """
-        acq = self.build_acquisition(Xcand, )
+        acq = self._evaluate(Xcand, *self._get_evaluate_kwargs(Xcand))
         return acq, tf.gradients(acq, [Xcand], name="acquisition_gradient")[0]
 
-    @setup_required
+    def _get_evaluate_kwargs(self, Xcand):
+        """
+            Method to get the evaluation kwargs for the build acquisition function
+            WARNING: When the this is overridden, Override the _evaluate method to mirror the correct autoflow!
+        """
+        return {}
+
     @AutoFlow((float_type, [None, None]))
-    def evaluate(self, Xcand):
+    def _evaluate(self, Xcand, **kwargs):
         """
-        AutoFlow method to compute the acquisition scores for candidates, without returning the gradients.
-        
-        :return: acquisition scores, size N x 1
+            AutoFlow method to compute the acquisition scores for candidates, without returning the gradients.
+            WARNING: Override this method when the _get_evaluate_kwargs is overridden!
+            :return: acquisition scores, size N x 1
         """
-        return self.build_acquisition(Xcand, )
+        return self.build_acquisition(Xcand,)
+
+    @setup_required
+    def evaluate(self, Xcand, **kwargs):
+        return self._evaluate(Xcand, *self._get_evaluate_kwargs(Xcand))
 
     def __add__(self, other):
         """
