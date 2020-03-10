@@ -200,7 +200,6 @@ class DataScaler(ModelWrapper):
         return self.wrapped.build_predict(Xnew, full_cov=full_cov, **kwargs)
 
     @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
-    @AutoFlow((float_type, [None, None]))
     def predict_f(self, Xnew, **kwargs):
         """
         Compute the mean and variance of held-out data at the points Xnew
@@ -208,12 +207,11 @@ class DataScaler(ModelWrapper):
         return self.wrapped.predict_f(Xnew, **kwargs)
 
     @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
-    @AutoFlow((float_type, [None, None]))
     def predict_f_full_cov(self, Xnew, **kwargs):
         """
         Compute the mean and variance of held-out data at the points Xnew
         """
-        return self.build_predict(Xnew, full_cov=True, **kwargs)
+        return self.predict_f(Xnew, full_cov=True, **kwargs)
 
     @AutoFlow((float_type, [None, None]))
     def predict_y(self, Xnew, **kwargs):
