@@ -249,11 +249,12 @@ class Acquisition(Parameterized):
             self._setup()
 
     def _create_gradient(self, acq, Xcand):
+        x_tensor = tf.constant(np.array([Xcand]))
+        acq_tensor = tf.constant(acq)
+
         sess = tf.Session()
         with sess.as_default():
-            x_tensor = tf.convert_to_tensor(np.array([Xcand]))
-            acq_tensor = tf.convert_to_tensor(acq)
-            return sess.run(tf.gradients(acq_tensor, x_tensor, name="acquisition_gradient"))[0]
+            return tf.gradients(acq_tensor, x_tensor).eval()[0]
 
     @setup_required
     def evaluate_with_gradients(self, Xcand):
