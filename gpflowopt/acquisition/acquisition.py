@@ -253,7 +253,7 @@ class Acquisition(Parameterized):
         with sess.as_default():
             x_tensor = tf.convert_to_tensor(np.array([Xcand]))
             acq_tensor = tf.convert_to_tensor(acq)
-            return tf.gradients(acq_tensor, x_tensor, name="acquisition_gradient")[0]
+            return sess.run(tf.gradients(acq_tensor, x_tensor, name="acquisition_gradient"))[0]
 
     @setup_required
     def evaluate_with_gradients(self, Xcand):
