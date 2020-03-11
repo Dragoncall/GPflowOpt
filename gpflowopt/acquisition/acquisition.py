@@ -254,8 +254,8 @@ class Acquisition(Parameterized):
 
         sess = tf.Session()
         with sess.as_default():
-            print(tf.gradients(acq_tensor, x_tensor))
-            return (tf.gradients(acq_tensor, x_tensor)[0]).eval()
+            print(tf.gradients(acq_tensor, x_tensor)[0])
+            return (tf.gradients(acq_tensor, x_tensor)).eval()[0]
 
     @setup_required
     def evaluate_with_gradients(self, Xcand):
