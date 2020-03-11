@@ -22,14 +22,14 @@ from .models import ModelWrapper
 
 float_type = settings.dtypes.float_type
 
-def transform(transforms_input, transforms_output):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper_transform(self, *args, **kwargs):
-            returns = func(self, *[getattr(self.input_transform, transforms_input[i])(args) for i, arg in enumerate(args)], **kwargs)
-            return tuple([getattr(self._output_transform, transforms_output[i])(value) for i, value in enumerate(returns)])
-        return wrapper_transform
-    return decorator
+# def transform(transforms_input, transforms_output):
+#     def decorator(func):
+#         @functools.wraps(func)
+#         def wrapper_transform(self, *args, **kwargs):
+#             returns = func(self, *[getattr(self.input_transform, transforms_input[i])(args) for i, arg in enumerate(args)], **kwargs)
+#             return tuple([getattr(self._output_transform, transforms_output[i])(value) for i, value in enumerate(returns)])
+#         return wrapper_transform
+#     return decorator
 
 
 class DataScaler(ModelWrapper):
@@ -190,14 +190,14 @@ class DataScaler(ModelWrapper):
             self.output_transform.assign(~LinearTransform(value.std(axis=0), value.mean(axis=0)))
         self.wrapped.Y = self.output_transform.forward(value)
 
-    @transform(['build_forward'], ['build_backward', 'build_backward_variance'])
     def build_predict(self, Xnew, full_cov=False, **kwargs):
         """
         build_predict builds the TensorFlow graph for prediction. Similar to the method in the wrapped model, however
         the input points are transformed using the input transform. The returned mean and variance are transformed
         backward using the output transform.
         """
-        return self.wrapped.build_predict(Xnew, full_cov=full_cov, **kwargs)
+        f, var = self.wrapped.build_predict(self.input_transform.build_forward(Xnew), full_cov=full_cov, **kwargs)
+        return self.output_transform.build_backward(f), self.output_transform.build_backward_variance(var)
 
     def predict_f(self, Xnew, **kwargs):
         """
