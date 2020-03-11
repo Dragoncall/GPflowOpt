@@ -248,9 +248,12 @@ class Acquisition(Parameterized):
         if self.constraint_indices().size == 0:
             self._setup()
 
-    @AutoFlow((float_type, [None, None]), (float_type, [None, None]))
     def _create_gradient(self, acq, Xcand):
-        return tf.gradients(acq, [Xcand], name="acquisition_gradient")[0]
+        sess = tf.Session()
+        with sess.as_default():
+            x_tensor = tf.convert_to_tensor([Xcand])
+            acq_tensor = tf.convert_to_tensor(acq)
+            return tf.gradients(acq_tensor, x_tensor, name="acquisition_gradient")[0]
 
     @setup_required
     def evaluate_with_gradients(self, Xcand):
