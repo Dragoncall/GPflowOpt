@@ -248,11 +248,6 @@ class Acquisition(Parameterized):
         if self.constraint_indices().size == 0:
             self._setup()
 
-    @AutoFlow((float_type, [None, None]), (float_type, [1, None, None]))
-    def _create_gradient(self, acq, Xcand):
-        gradients = tf.gradients(acq, Xcand)
-        return gradients
-
     @setup_required
     def evaluate_with_gradients(self, Xcand):
         """
@@ -261,8 +256,8 @@ class Acquisition(Parameterized):
         :return: acquisition scores, size N x 1
             the gradients of the acquisition scores, size N x D 
         """
-        acq = self._evaluate(Xcand, **self._get_evaluate_kwargs(Xcand))
-        return acq, self._create_gradient(np.array(acq), np.array([Xcand]))
+        acq, gradients = self._evaluate(Xcand, **self._get_evaluate_kwargs(Xcand))
+        return acq, gradients
 
     def _get_evaluate_kwargs(self, Xcand):
         """
@@ -278,7 +273,8 @@ class Acquisition(Parameterized):
             WARNING: Override this method when the _get_evaluate_kwargs is overridden!
             :return: acquisition scores, size N x 1
         """
-        return self.build_acquisition(Xcand, **kwargs)
+        acq = self.build_acquisition(Xcand, **kwargs)
+        return acq, tf.gradients(acq, [Xcand], name="acquisition_gradient")[0]
 
     @setup_required
     def evaluate(self, Xcand, **kwargs):
