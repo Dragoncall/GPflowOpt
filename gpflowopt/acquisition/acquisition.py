@@ -249,8 +249,8 @@ class Acquisition(Parameterized):
             self._setup()
 
     def _create_gradient(self, acq, Xcand):
-        x_tensor = tf.constant(np.array([Xcand]))
-        acq_tensor = tf.constant(acq)
+        x_tensor = tf.constant(np.array([Xcand]), dtype=float_type)
+        acq_tensor = tf.constant(acq, dtype=float_type)
 
         sess = tf.Session()
         with sess.as_default():
