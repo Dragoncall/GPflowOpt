@@ -16,7 +16,7 @@ from ..scaling import DataScaler
 from ..domain import UnitCube
 from ..models import ModelWrapper
 
-from gpflow.param import Parameterized, AutoFlow, ParamList
+from gpflow.param import Parameterized, AutoFlow, ParamList, DataHolder
 from gpflow.model import Model
 from gpflow import settings
 
@@ -248,14 +248,10 @@ class Acquisition(Parameterized):
         if self.constraint_indices().size == 0:
             self._setup()
 
+    @AutoFlow((float_type, [None, None]), (float_type, [None, None]))
     def _create_gradient(self, acq, Xcand):
-        x_tensor = tf.constant(np.array([Xcand]), dtype=float_type)
-        acq_tensor = tf.constant(acq, dtype=float_type)
-        gradients = tf.gradients(acq_tensor, x_tensor)
-
-        sess = tf.Session()
-        with sess.as_default():
-            return gradients[0].eval()
+        gradients = tf.gradients(acq, Xcand)
+        return gradients
 
     @setup_required
     def evaluate_with_gradients(self, Xcand):
@@ -266,7 +262,7 @@ class Acquisition(Parameterized):
             the gradients of the acquisition scores, size N x D 
         """
         acq = self._evaluate(Xcand, **self._get_evaluate_kwargs(Xcand))
-        return acq, self._create_gradient(acq, Xcand)
+        return acq, self._create_gradient(np.array(acq), np.array([Xcand]))
 
     def _get_evaluate_kwargs(self, Xcand):
         """
