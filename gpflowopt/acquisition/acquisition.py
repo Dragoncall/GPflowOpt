@@ -164,7 +164,7 @@ class Acquisition(Parameterized):
 
             # The model can implement a custom set_data_acq function
             if hasattr(model, 'set_data_acq'):
-                model.set_data_acq(X, Y)
+                model.set_data_acq(X, Ypart)
             else:
                 model.X = X
                 model.Y = Ypart
