@@ -93,9 +93,6 @@ class MinValueEntropySearch(Acquisition):
         mins = -np.log(-np.log(np.random.rand(self.num_samples).astype(np_float_type))) * beta + alpha
         self.samples.set_data(mins)
 
-    def _build_acquisition(self, Xcand, **kwargs):
-        return self.models[0].build_predict(Xcand, **kwargs)
-
     def build_acquisition(self, Xcand, **kwargs):
         fmean, fvar = self._build_acquisition(Xcand, **kwargs)
         norm = tf.contrib.distributions.Normal(tf.constant(0.0, dtype=float_type), tf.constant(1.0, dtype=float_type))

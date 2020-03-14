@@ -51,9 +51,6 @@ class LowerConfidenceBound(Acquisition):
         super(LowerConfidenceBound, self).__init__(model)
         self.sigma = DataHolder(np.array(sigma))
 
-    def _build_acquisition(self, Xcand, **kwargs):
-        return self.models[0].build_predict(Xcand, **kwargs)
-
     def build_acquisition(self, Xcand, **kwargs):
         candidate_mean, candidate_var = self._build_acquisition(Xcand, **kwargs)
         candidate_var = tf.maximum(candidate_var, 0)

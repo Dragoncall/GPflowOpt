@@ -122,7 +122,7 @@ class Acquisition(Parameterized):
             model.set_state(runs[best_idx].x)
 
     def _build_acquisition(self, Xcand, **kwargs):
-        raise NotImplementedError
+        return self.models[0].build_predict(Xcand, **kwargs)
 
     def build_acquisition(self, Xcand, **kwargs):
         raise NotImplementedError
