@@ -67,9 +67,12 @@ class ExpectedImprovement(Acquisition):
         samples_mean, _ = self.models[0].predict_f(feasible_samples)
         self.fmin.set_data(np.min(samples_mean, axis=0))
 
+    def _build_acquisition(self, Xcand, **kwargs):
+        return self.models[0].build_predict(Xcand, **kwargs)
+
     def build_acquisition(self, Xcand, **kwargs):
         # Obtain predictive distributions for candidates
-        candidate_mean, candidate_var = self.models[0].build_predict(Xcand, **kwargs)
+        candidate_mean, candidate_var = self._build_acquisition(Xcand, **kwargs)
         candidate_var = tf.maximum(candidate_var, stability)
 
         # Compute EI
