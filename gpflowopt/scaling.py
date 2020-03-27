@@ -203,7 +203,7 @@ class DataScaler(ModelWrapper):
         """
         Compute the mean and variance of held-out data at the points Xnew
         """
-        f, var = self.wrapped.predict_f(Xnew, **kwargs)
+        f, var = self.wrapped.predict_f(self.input_transform.forward(Xnew), **kwargs)
 
         @AutoFlow((float_type, [None, 1]), (float_type, [None, 1]))
         def predict_f_rescaled(self, f, var):
